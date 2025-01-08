@@ -1,0 +1,27 @@
+﻿[
+    {
+        "product_name": "Laptop",
+        "quantity": 50,
+        "price_per_unit": 12000000.00
+    },
+    {
+        "product_name": "Smartphone",
+        "quantity": 100,
+        "price_per_unit": 8000000.00
+    },
+    {
+        "product_name": "Headphones",
+        "quantity": 200,
+        "price_per_unit": 1500000.00
+    },
+    {
+        "product_name": "Keyboard",
+        "quantity": 150,
+        "price_per_unit": 500000.00
+    },
+    {
+        "product_name": "Mouse",
+        "quantity": 300,
+        "price_per_unit": 300000.00
+    }
+]
