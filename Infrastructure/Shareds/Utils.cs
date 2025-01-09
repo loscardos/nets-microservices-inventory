@@ -167,5 +167,32 @@ namespace InventoryService.Infrastructure.Shareds
             }
             return Guid.Empty;
         }
+        
+        public static Dictionary<string, object> SuccessResponseFormat(object data = null)
+        {
+            return new Dictionary<string, object>
+            {
+                {
+                    "data",
+                    new Dictionary<string, object> { { "success", true }, { "data", data }, }
+                }
+            };
+        }
+
+        public static Dictionary<string, object> ErrorResponseFormat(string message)
+        {
+            return new Dictionary<string, object>
+            {
+                {
+                    "data",
+                    new Dictionary<string, object>
+                    {
+                        { "success", false },
+                        { "data", null },
+                        { "message", message },
+                    }
+                }
+            };
+        }
     }
 }
