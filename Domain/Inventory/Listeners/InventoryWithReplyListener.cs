@@ -1,3 +1,7 @@
+using document_generator.Infrastructure.Helpers;
+using InventoryService.Domain.Inventory.Dtos;
+using InventoryService.Domain.Inventory.Messages;
+using InventoryService.Infrastructure.Helpers;
 using InventoryService.Infrastructure.Subscriptions;
 
 namespace InventoryService.Domain.Inventory.Listeners
@@ -9,49 +13,38 @@ namespace InventoryService.Domain.Inventory.Listeners
 
         public async Task<IDictionary<string, object>> ReplyAsync(IDictionary<string, object> data)
         {
-            Dictionary<string, object> reply;
-
             try
             {
-                string productName = data.ContainsKey("productName") ? data["productName"]?.ToString() : null;
-                int requiredQuantity =
-                    data.ContainsKey("quantity") && int.TryParse(data["quantity"]?.ToString(), out var qty) ? qty : 0;
+                InventoryNatsDto inventoryNatsDto = data.ToObject<InventoryNatsDto>();
 
-                if (string.IsNullOrWhiteSpace(productName))
-                    throw new ArgumentException("Product name is required.");
+                if (string.IsNullOrWhiteSpace(inventoryNatsDto.ProductName))
+                    throw new ArgumentException(InventoryErrorMessage.ErrProductNameRequired);
 
-                if (requiredQuantity <= 0)
-                    throw new ArgumentException("Quantity must be greater than zero.");
+                if (inventoryNatsDto.Quantity <= 0)
+                    throw new ArgumentException(InventoryErrorMessage.ErrGreaterThenZero);
 
-                bool isAvailable = await _inventoryService.IsQuantityAvailable(productName, requiredQuantity);
+                bool isAvailable = await _inventoryService.IsQuantityAvailable(inventoryNatsDto);
 
-                if (isAvailable)
-                {
-                    reply = new()
-                    {
-                        { "status", "OK" },
-                        { "message", $"Inventory is ready for {productName} with quantity {requiredQuantity}." }
-                    };
-                }
-                else
-                {
-                    reply = new()
-                    {
-                        { "status", "ERROR" },
-                        { "message", $"Insufficient inventory for {productName}. Required: {requiredQuantity}." }
-                    };
-                }
+                return isAvailable
+                    ? ResponseBuilder.SuccessResponse(string.Format(InventorySuccessMessage.SuccessInventoryReady,
+                            inventoryNatsDto.ProductName,
+                            inventoryNatsDto.Quantity)
+                        , null).ToDictionary()
+                    : ResponseBuilder.ErrorResponse(400, string.Format(InventoryErrorMessage.ErrInsufficientInventory,
+                            inventoryNatsDto.ProductName,
+                            inventoryNatsDto.Quantity),
+                        null).ToDictionary();
             }
             catch (ArgumentException ex)
             {
-                reply = new() { { "status", "ERROR" }, { "message", $"Validation error: {ex.Message}" } };
+                return ResponseBuilder.ErrorResponse(400, "Invalid input", ex.Message)
+                    .ToDictionary();
             }
             catch (Exception ex)
             {
-                reply = new() { { "status", "ERROR" }, { "message", $"Unexpected error: {ex.Message}" } };
+                return ResponseBuilder.ErrorResponse(500, "An unexpected error occurred", ex.Message)
+                    .ToDictionary();
             }
-
-            return reply;
         }
     }
 }

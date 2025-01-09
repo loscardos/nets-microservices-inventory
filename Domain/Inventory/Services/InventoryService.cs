@@ -37,17 +37,17 @@ namespace InventoryService.Domain.Inventory.Services
             return new InventoryResultDto(inventory);
         }
 
-        public async Task<bool> IsQuantityAvailable(string productName, int requiredQuantity)
+        public async Task<bool> IsQuantityAvailable(InventoryNatsDto inventoryNatsDto)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(productName))
+                if (string.IsNullOrWhiteSpace(inventoryNatsDto.ProductName))
                     throw new BadHttpRequestException("Product name cannot be null or empty.");
 
-                if (requiredQuantity <= 0)
+                if (inventoryNatsDto.Quantity <= 0)
                     throw new BadHttpRequestException("Required quantity must be greater than zero.");
 
-                return await _inventoryQueryRepository.IsQuantityAvailable(productName, requiredQuantity);
+                return await _inventoryQueryRepository.IsQuantityAvailable(inventoryNatsDto.ProductName, inventoryNatsDto.Quantity);
             }
             catch (BadHttpRequestException ex)
             {
